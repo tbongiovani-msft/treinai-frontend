@@ -22,7 +22,6 @@ export default defineConfig({
       '/api/avaliacoes':       { target: 'http://localhost:7074', changeOrigin: true },
       '/api/nutricao':         { target: 'http://localhost:7075', changeOrigin: true },
       '/api/relatorios':       { target: 'http://localhost:7076', changeOrigin: true },
-      '/api/admin':            { target: 'http://localhost:7077', changeOrigin: true },
       '/api/auth':             { target: 'http://localhost:7077', changeOrigin: true }, // fn-admin
       '/api/usuarios':         { target: 'http://localhost:7077', changeOrigin: true }, // fn-admin
       '/api/notificacoes':     { target: 'http://localhost:7077', changeOrigin: true }, // fn-admin
