@@ -1,0 +1,67 @@
+{
+  "navigationFallback": {
+    "rewrite": "/index.html",
+    "exclude": ["/assets/*", "/api/*"]
+  },
+  "routes": [
+    {
+      "route": "/api/alunos/*",
+      "allowedRoles": ["authenticated"]
+    },
+    {
+      "route": "/api/treinos/*",
+      "allowedRoles": ["authenticated"]
+    },
+    {
+      "route": "/api/exercicios/*",
+      "allowedRoles": ["authenticated"]
+    },
+    {
+      "route": "/api/atividades/*",
+      "allowedRoles": ["authenticated"]
+    },
+    {
+      "route": "/api/avaliacoes/*",
+      "allowedRoles": ["authenticated"]
+    },
+    {
+      "route": "/api/planos-nutricionais/*",
+      "allowedRoles": ["authenticated"]
+    },
+    {
+      "route": "/api/relatorios/*",
+      "allowedRoles": ["authenticated"]
+    },
+    {
+      "route": "/api/admin/*",
+      "allowedRoles": ["authenticated"]
+    },
+    {
+      "route": "/api/usuarios/*",
+      "allowedRoles": ["authenticated"]
+    },
+    {
+      "route": "/api/notificacoes/*",
+      "allowedRoles": ["authenticated"]
+    },
+    {
+      "route": "/api/objetivos/*",
+      "allowedRoles": ["authenticated"]
+    },
+    {
+      "route": "/api/tenants/*",
+      "allowedRoles": ["authenticated"]
+    }
+  ],
+  "responseOverrides": {
+    "401": {
+      "redirect": "/login",
+      "statusCode": 302
+    }
+  },
+  "globalHeaders": {
+    "X-Content-Type-Options": "nosniff",
+    "X-Frame-Options": "DENY",
+    "Content-Security-Policy": "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; connect-src 'self' https://*.azurewebsites.net https://*.azurestaticapps.net; frame-src https://www.youtube.com"
+  }
+}
