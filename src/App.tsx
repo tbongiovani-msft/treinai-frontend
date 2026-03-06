@@ -23,6 +23,7 @@ import { ObjetivosPage } from '@/pages/objetivos/ObjetivosPage';
 import { NotificacoesPage } from '@/pages/notificacoes/NotificacoesPage';
 import { AdminPage } from '@/pages/admin/AdminPage';
 import { ConfiguracoesPage } from '@/pages/configuracoes/ConfiguracoesPage';
+import { MeuPerfilPage } from '@/pages/perfil/MeuPerfilPage';
 import { NotFoundPage } from '@/pages/PlaceholderPages';
 
 export default function App() {
@@ -237,6 +238,16 @@ export default function App() {
               element={
                 <RoleGuard allowedRoles={['admin']}>
                   <AdminPage />
+                </RoleGuard>
+              }
+            />
+
+            {/* Meu Perfil — aluno only */}
+            <Route
+              path="/meu-perfil"
+              element={
+                <RoleGuard allowedRoles={['aluno']}>
+                  <MeuPerfilPage />
                 </RoleGuard>
               }
             />

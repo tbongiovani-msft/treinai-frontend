@@ -6,3 +6,4 @@ export { Spinner, PageLoader } from './Spinner';
 export { Alert } from './Alert';
 export { Timer } from './Timer';
 export { RestTimer } from './RestTimer';
+export { YouTubePlayer, VideoLink } from './YouTubePlayer';

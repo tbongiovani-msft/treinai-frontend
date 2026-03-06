@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { apiClient, extractApiError } from '@/lib/api';
 import {
-  Card, CardContent, CardHeader, CardFooter, Button, Input, Alert, Spinner, Timer, RestTimer,
+  Card, CardContent, CardHeader, CardFooter, Button, Input, Alert, Spinner, Timer, RestTimer, VideoLink,
 } from '@/components/ui';
 import { useTimer } from '@/hooks/useTimer';
 import {
@@ -520,14 +520,7 @@ export function CheckInPage() {
 
               {/* Link to video */}
               {ex.linkVideo && (
-                <a
-                  href={ex.linkVideo}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-xs text-primary-600 underline hover:text-primary-800"
-                >
-                  Ver vídeo demonstrativo
-                </a>
+                <VideoLink url={ex.linkVideo} label="Ver vídeo demonstrativo" />
               )}
 
               {/* Series table — show when active or pending current */}

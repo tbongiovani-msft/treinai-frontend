@@ -4,17 +4,20 @@ import { apiClient, extractApiError } from '@/lib/api';
 import {
   Card, CardContent, CardHeader, Badge, Button, PageLoader, Alert,
 } from '@/components/ui';
-import { ArrowLeft, Edit, Mail, Phone, Calendar, Ruler, Weight, Target } from 'lucide-react';
-import { formatDate, formatNumber, calcularIMC, classificarIMC, getInitials } from '@/lib/utils';
-import type { Aluno, Avaliacao, Treino } from '@/types';
+import { ArrowLeft, Edit, Mail, Phone, Calendar, Ruler, Weight, Target, TrendingUp, TrendingDown, Minus, Activity, UserX, UserCheck } from 'lucide-react';
+import { formatDate, formatDateTime, formatNumber, calcularIMC, classificarIMC, getInitials } from '@/lib/utils';
+import type { Aluno, Avaliacao, Treino, HistoricoPeso, Atividade } from '@/types';
 
 export function AlunoDetailPage() {
   const { id } = useParams<{ id: string }>();
   const [aluno, setAluno] = useState<Aluno | null>(null);
   const [treino, setTreino] = useState<Treino | null>(null);
   const [avaliacoes, setAvaliacoes] = useState<Avaliacao[]>([]);
+  const [historicoPeso, setHistoricoPeso] = useState<HistoricoPeso[]>([]);
+  const [atividades, setAtividades] = useState<Atividade[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [toggleLoading, setToggleLoading] = useState(false);
 
   useEffect(() => {
     const fetch = async () => {
@@ -27,6 +30,8 @@ export function AlunoDetailPage() {
         // Fetch related data (non-blocking)
         apiClient.get<Treino>(`/api/treinos/aluno/${id}/ativo`).then((r) => setTreino(r.data)).catch(() => {});
         apiClient.get<Avaliacao[]>(`/api/avaliacoes/aluno/${id}`).then((r) => setAvaliacoes(r.data)).catch(() => {});
+        apiClient.get<HistoricoPeso[]>(`/api/alunos/${id}/historico-peso`).then((r) => setHistoricoPeso(r.data)).catch(() => {});
+        apiClient.get<Atividade[]>(`/api/atividades?alunoId=${id}`).then((r) => setAtividades(r.data)).catch(() => {});
       } catch (err) {
         setError(extractApiError(err));
       } finally {
@@ -63,12 +68,41 @@ export function AlunoDetailPage() {
             </div>
           </div>
         </div>
+        <div className="flex gap-2">
         <Link to={`/alunos/${id}/editar`}>
           <Button variant="outline" size="sm">
             <Edit className="h-4 w-4" />
             Editar
           </Button>
         </Link>
+        <Button
+          variant={aluno.ativo ? 'danger' : 'primary'}
+          size="sm"
+          disabled={toggleLoading}
+          onClick={async () => {
+            if (!aluno.ativo || confirm(`Deseja realmente desativar ${aluno.nome}?`)) {
+              try {
+                setToggleLoading(true);
+                if (aluno.ativo) {
+                  await apiClient.delete(`/api/alunos/${id}`);
+                  setAluno({ ...aluno, ativo: false });
+                } else {
+                  // Re-activate: full PUT with ativo = true
+                  await apiClient.put(`/api/alunos/${id}`, { ...aluno, ativo: true });
+                  setAluno({ ...aluno, ativo: true });
+                }
+              } catch (err) {
+                setError(extractApiError(err));
+              } finally {
+                setToggleLoading(false);
+              }
+            }
+          }}
+        >
+          {aluno.ativo ? <UserX className="h-4 w-4" /> : <UserCheck className="h-4 w-4" />}
+          {toggleLoading ? '...' : aluno.ativo ? 'Desativar' : 'Reativar'}
+        </Button>
+        </div>
       </div>
 
       {/* Info Cards */}
@@ -177,6 +211,99 @@ export function AlunoDetailPage() {
           </CardContent>
         </Card>
       )}
+
+      {/* Weight History */}
+      {historicoPeso.length > 0 && (
+        <Card>
+          <CardHeader>
+            <h3 className="text-sm font-semibold text-gray-700">
+              Histórico de Peso ({historicoPeso.length} registros)
+            </h3>
+          </CardHeader>
+          <CardContent>
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b border-gray-200 text-left text-xs font-semibold text-gray-500">
+                    <th className="pb-2 pr-4">Data</th>
+                    <th className="pb-2 pr-4">Anterior</th>
+                    <th className="pb-2 pr-4">Novo</th>
+                    <th className="pb-2 pr-4">Variação</th>
+                    <th className="pb-2">Observação</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-100">
+                  {historicoPeso.slice(0, 10).map((h) => {
+                    const diff = h.pesoNovo - h.pesoAnterior;
+                    return (
+                      <tr key={h.id}>
+                        <td className="py-2 pr-4 text-gray-600">{formatDateTime(h.dataRegistro)}</td>
+                        <td className="py-2 pr-4 text-gray-500">{formatNumber(h.pesoAnterior)} kg</td>
+                        <td className="py-2 pr-4 font-medium text-gray-900">{formatNumber(h.pesoNovo)} kg</td>
+                        <td className="py-2 pr-4">
+                          <span className={`flex items-center gap-1 text-xs font-medium ${
+                            diff > 0 ? 'text-red-500' : diff < 0 ? 'text-green-500' : 'text-gray-400'
+                          }`}>
+                            {diff > 0 ? <TrendingUp className="h-3 w-3" /> :
+                             diff < 0 ? <TrendingDown className="h-3 w-3" /> :
+                             <Minus className="h-3 w-3" />}
+                            {diff > 0 ? '+' : ''}{formatNumber(diff)} kg
+                          </span>
+                        </td>
+                        <td className="py-2 text-gray-500">{h.observacao ?? '—'}</td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Adherence Stats (E7) */}
+      <Card>
+        <CardHeader>
+          <div className="flex items-center gap-2">
+            <Activity className="h-4 w-4 text-gray-500" />
+            <h3 className="text-sm font-semibold text-gray-700">Aderência ao Treino</h3>
+          </div>
+        </CardHeader>
+        <CardContent>
+          {atividades.length === 0 ? (
+            <p className="text-sm text-gray-400">Nenhuma atividade registrada ainda.</p>
+          ) : (
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+              <div className="text-center">
+                <p className="text-2xl font-bold text-primary-600">{atividades.length}</p>
+                <p className="text-xs text-gray-500">Total de Atividades</p>
+              </div>
+              <div className="text-center">
+                <p className="text-2xl font-bold text-primary-600">
+                  {atividades.filter(a => {
+                    const d = new Date(a.dataExecucao ?? a.criadoEm);
+                    const weekAgo = new Date();
+                    weekAgo.setDate(weekAgo.getDate() - 7);
+                    return d >= weekAgo;
+                  }).length}
+                </p>
+                <p className="text-xs text-gray-500">Últimos 7 dias</p>
+              </div>
+              <div className="text-center">
+                <p className="text-2xl font-bold text-primary-600">
+                  {atividades.filter(a => {
+                    const d = new Date(a.dataExecucao ?? a.criadoEm);
+                    const monthAgo = new Date();
+                    monthAgo.setDate(monthAgo.getDate() - 30);
+                    return d >= monthAgo;
+                  }).length}
+                </p>
+                <p className="text-xs text-gray-500">Últimos 30 dias</p>
+              </div>
+            </div>
+          )}
+        </CardContent>
+      </Card>
     </div>
   );
 }

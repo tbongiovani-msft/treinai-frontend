@@ -42,6 +42,19 @@ export interface Aluno {
   atualizadoEm: string;
 }
 
+// ── Histórico de Peso ──
+export interface HistoricoPeso {
+  id: string;
+  tenantId: string;
+  alunoId: string;
+  pesoAnterior: number;
+  pesoNovo: number;
+  dataRegistro: string;
+  observacao?: string;
+  criadoEm: string;
+  createdBy?: string;
+}
+
 // ── Treino & Exercicio ──
 export interface ExercicioTreino {
   exercicioId: string;

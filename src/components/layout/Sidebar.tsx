@@ -15,6 +15,7 @@ import {
   X,
   Goal,
   Scale,
+  User,
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -31,6 +32,7 @@ interface NavItem {
 
 const navItems: NavItem[] = [
   { icon: LayoutDashboard, label: 'Dashboard', href: '/', roles: ['admin', 'professor', 'aluno'] },
+  { icon: User, label: 'Meu Perfil', href: '/meu-perfil', roles: ['aluno'] },
   { icon: Users, label: 'Alunos', href: '/alunos', roles: ['admin', 'professor'] },
   { icon: Dumbbell, label: 'Treinos', href: '/treinos', roles: ['admin', 'professor', 'aluno'] },
   { icon: ClipboardList, label: 'Exercícios', href: '/exercicios', roles: ['admin', 'professor'] },

@@ -2,9 +2,9 @@ import { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { apiClient, extractApiError } from '@/lib/api';
 import {
-  Card, CardContent, CardHeader, Badge, Button, PageLoader, Alert,
+  Card, CardContent, CardHeader, Badge, Button, PageLoader, Alert, VideoLink,
 } from '@/components/ui';
-import { ArrowLeft, Edit, Play, Dumbbell } from 'lucide-react';
+import { ArrowLeft, Edit, Dumbbell } from 'lucide-react';
 import { formatDate } from '@/lib/utils';
 import type { Treino } from '@/types';
 
@@ -104,15 +104,7 @@ export function TreinoDetailPage() {
                         </div>
                       </div>
                       {ex.linkVideo && (
-                        <a
-                          href={ex.linkVideo}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="rounded-lg p-2 text-red-500 hover:bg-red-50"
-                          title="Ver vídeo"
-                        >
-                          <Play className="h-4 w-4" />
-                        </a>
+                        <VideoLink url={ex.linkVideo} />
                       )}
                     </div>
                   ))}
