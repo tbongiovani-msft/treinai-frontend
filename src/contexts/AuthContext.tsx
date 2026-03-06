@@ -1,6 +1,6 @@
 import { createContext, useContext, useEffect, useState, useCallback, type ReactNode } from 'react';
 import { apiClient } from '@/lib/api';
-import type { Usuario, UserRole, AuthUser } from '@/types';
+import type { Usuario, UserRole, AuthUser, Aluno } from '@/types';
 
 // ──────────────────────────────────────────────────────────────
 // Mock auth: until Azure AD B2C is configured (E15-07), allow
@@ -57,6 +57,7 @@ export function setMockUser(role: UserRole, nome: string, email: string): Usuari
 interface AuthContextType {
   user: Usuario | null;
   authUser: AuthUser | null;
+  alunoRecordId: string | null;
   loading: boolean;
   error: string | null;
   isAuthenticated: boolean;
@@ -76,8 +77,21 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<Usuario | null>(null);
   const [authUser, setAuthUser] = useState<AuthUser | null>(null);
+  const [alunoRecordId, setAlunoRecordId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  // Resolves the Aluno record ID for aluno-role users
+  const resolveAlunoRecord = useCallback(async () => {
+    try {
+      const res = await apiClient.get<Aluno>('/api/alunos/me');
+      const id = res.data.id;
+      setAlunoRecordId(id);
+      localStorage.setItem('treinai_aluno_record_id', id);
+    } catch {
+      console.warn('Could not resolve aluno record ID');
+    }
+  }, []);
 
   const fetchAuth = useCallback(async () => {
     try {
@@ -92,6 +106,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           localStorage.setItem('treinai_tenant_id', mockUser.tenantId);
           localStorage.setItem('treinai_user_id', mockUser.id);
           localStorage.setItem('treinai_user_role', mockUser.role);
+          // Resolve aluno record ID for aluno users
+          if (mockUser.role === 'aluno') {
+            await resolveAlunoRecord();
+          }
         }
         setLoading(false);
         return;
@@ -117,6 +135,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       localStorage.setItem('treinai_tenant_id', me.tenantId);
       localStorage.setItem('treinai_user_id', me.id);
       localStorage.setItem('treinai_user_role', me.role);
+
+      if (me.role === 'aluno') {
+        await resolveAlunoRecord();
+      }
     } catch (err) {
       console.error('Auth error:', err);
       if (import.meta.env.DEV) {
@@ -140,7 +162,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [resolveAlunoRecord]);
 
   useEffect(() => {
     fetchAuth();
@@ -155,18 +177,26 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const loginMock = (role: UserRole, nome: string, email: string) => {
+  const loginMock = async (role: UserRole, nome: string, email: string) => {
     const mockUser = setMockUser(role, nome, email);
     setUser(mockUser);
+    if (role === 'aluno') {
+      await resolveAlunoRecord();
+    } else {
+      setAlunoRecordId(null);
+      localStorage.removeItem('treinai_aluno_record_id');
+    }
   };
 
   const logout = () => {
     localStorage.removeItem('treinai_tenant_id');
     localStorage.removeItem('treinai_user_id');
     localStorage.removeItem('treinai_user_role');
+    localStorage.removeItem('treinai_aluno_record_id');
     localStorage.removeItem(MOCK_AUTH_KEY);
     setUser(null);
     setAuthUser(null);
+    setAlunoRecordId(null);
 
     if (isMockAuthEnabled()) {
       window.location.href = '/login';
@@ -193,6 +223,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         isAdmin: role === 'admin',
         isProfessor: role === 'professor',
         isAluno: role === 'aluno',
+        alunoRecordId,
         isMockAuth: isMockAuthEnabled(),
         login,
         loginMock,

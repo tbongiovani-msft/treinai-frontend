@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useAuth } from '@/contexts/AuthContext';
 import { apiClient, extractApiError } from '@/lib/api';
 import {
   Card, CardContent, CardHeader, CardFooter, Button, Input, Alert, Badge, Spinner,
@@ -22,7 +23,8 @@ interface ExercicioForm {
 export function RegistroAtividadePage() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const alunoId = searchParams.get('alunoId') ?? '';
+  const { alunoRecordId, isAluno } = useAuth();
+  const alunoId = searchParams.get('alunoId') || (isAluno ? alunoRecordId : null) || '';
 
   const [treinos, setTreinos] = useState<Treino[]>([]);
   const [treinoSelecionado, setTreinoSelecionado] = useState<Treino | null>(null);

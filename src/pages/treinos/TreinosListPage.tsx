@@ -1,5 +1,6 @@
 import { useEffect, useState, useCallback } from 'react';
 import { Link } from 'react-router-dom';
+import { useAuth } from '@/contexts/AuthContext';
 import { apiClient, extractApiError } from '@/lib/api';
 import { Card, CardContent, Button, Input, Badge, PageLoader, Alert } from '@/components/ui';
 import { Plus, Search, Dumbbell, Calendar } from 'lucide-react';
@@ -7,6 +8,7 @@ import { formatDate } from '@/lib/utils';
 import type { Treino } from '@/types';
 
 export function TreinosListPage() {
+  const { isProfessor, isAdmin } = useAuth();
   const [treinos, setTreinos] = useState<Treino[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -41,12 +43,14 @@ export function TreinosListPage() {
           <h1 className="text-2xl font-bold text-gray-900">Treinos</h1>
           <p className="text-sm text-gray-500">{treinos.length} treinos cadastrados</p>
         </div>
-        <Link to="/treinos/novo">
-          <Button>
-            <Plus className="h-4 w-4" />
-            Novo Treino
-          </Button>
-        </Link>
+        {(isAdmin || isProfessor) && (
+          <Link to="/treinos/novo">
+            <Button>
+              <Plus className="h-4 w-4" />
+              Novo Treino
+            </Button>
+          </Link>
+        )}
       </div>
 
       {error && <Alert type="error" message={error} />}

@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { apiClient, extractApiError } from '@/lib/api';
 import { Card, CardContent, PageLoader, Alert } from '@/components/ui';
-import { Users, Dumbbell, Activity, Target, TrendingUp, Calendar } from 'lucide-react';
+import { Users, Dumbbell, Activity, Target, TrendingUp, Calendar, ClipboardList, Scale, ChevronRight } from 'lucide-react';
 import type { DashboardData } from '@/types';
 
 interface StatCardProps {
@@ -29,7 +30,7 @@ function StatCard({ icon: Icon, label, value, color }: StatCardProps) {
 }
 
 export function DashboardPage() {
-  const { user, isProfessor, isAdmin, isAluno } = useAuth();
+  const { user, isProfessor, isAdmin, isAluno, alunoRecordId } = useAuth();
   const [data, setData] = useState<DashboardData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -127,6 +128,71 @@ export function DashboardPage() {
               </div>
             </CardContent>
           </Card>
+        </div>
+      )}
+
+      {/* Aluno quick actions */}
+      {isAluno && alunoRecordId && (
+        <div>
+          <h2 className="mb-3 text-lg font-semibold text-gray-900">Ações Rápidas</h2>
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            <Link to="/atividades/registrar">
+              <Card className="cursor-pointer transition-shadow hover:shadow-md">
+                <CardContent className="flex items-center gap-4">
+                  <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-green-100">
+                    <ClipboardList className="h-6 w-6 text-green-600" />
+                  </div>
+                  <div className="flex-1">
+                    <p className="font-medium text-gray-900">Registrar Treino</p>
+                    <p className="text-xs text-gray-500">Iniciar atividade do dia</p>
+                  </div>
+                  <ChevronRight className="h-5 w-5 text-gray-400" />
+                </CardContent>
+              </Card>
+            </Link>
+            <Link to="/atividades">
+              <Card className="cursor-pointer transition-shadow hover:shadow-md">
+                <CardContent className="flex items-center gap-4">
+                  <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-blue-100">
+                    <Activity className="h-6 w-6 text-blue-600" />
+                  </div>
+                  <div className="flex-1">
+                    <p className="font-medium text-gray-900">Histórico</p>
+                    <p className="text-xs text-gray-500">Ver treinos anteriores</p>
+                  </div>
+                  <ChevronRight className="h-5 w-5 text-gray-400" />
+                </CardContent>
+              </Card>
+            </Link>
+            <Link to="/treinos">
+              <Card className="cursor-pointer transition-shadow hover:shadow-md">
+                <CardContent className="flex items-center gap-4">
+                  <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-purple-100">
+                    <Dumbbell className="h-6 w-6 text-purple-600" />
+                  </div>
+                  <div className="flex-1">
+                    <p className="font-medium text-gray-900">Meus Treinos</p>
+                    <p className="text-xs text-gray-500">Ver plano de treino</p>
+                  </div>
+                  <ChevronRight className="h-5 w-5 text-gray-400" />
+                </CardContent>
+              </Card>
+            </Link>
+            <Link to="/avaliacoes">
+              <Card className="cursor-pointer transition-shadow hover:shadow-md">
+                <CardContent className="flex items-center gap-4">
+                  <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-orange-100">
+                    <Scale className="h-6 w-6 text-orange-600" />
+                  </div>
+                  <div className="flex-1">
+                    <p className="font-medium text-gray-900">Avaliações</p>
+                    <p className="text-xs text-gray-500">Acompanhar evolução</p>
+                  </div>
+                  <ChevronRight className="h-5 w-5 text-gray-400" />
+                </CardContent>
+              </Card>
+            </Link>
+          </div>
         </div>
       )}
 

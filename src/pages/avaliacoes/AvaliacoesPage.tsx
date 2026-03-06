@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams, useParams } from 'react-router-dom';
+import { useAuth } from '@/contexts/AuthContext';
 import { apiClient, extractApiError } from '@/lib/api';
 import {
   Card, CardContent, CardHeader, CardFooter, Button, Input, Alert, Spinner, Badge,
@@ -23,7 +24,8 @@ const circ_fields: { key: keyof Circunferencias; label: string }[] = [
 export function AvaliacoesListPage() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const alunoId = searchParams.get('alunoId') ?? '';
+  const { alunoRecordId, isAluno, isProfessor, isAdmin } = useAuth();
+  const alunoId = searchParams.get('alunoId') || (isAluno ? alunoRecordId : null) || '';
 
   const [avaliacoes, setAvaliacoes] = useState<Avaliacao[]>([]);
   const [loading, setLoading] = useState(true);
@@ -51,9 +53,11 @@ export function AvaliacoesListPage() {
     <div className="mx-auto max-w-3xl space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold text-gray-900">Avaliações Físicas</h1>
-        <Button onClick={() => navigate(`/avaliacoes/nova?alunoId=${alunoId}`)}>
-          <Plus className="h-4 w-4" /> Nova Avaliação
-        </Button>
+        {(isAdmin || isProfessor) && (
+          <Button onClick={() => navigate(`/avaliacoes/nova?alunoId=${alunoId}`)}>
+            <Plus className="h-4 w-4" /> Nova Avaliação
+          </Button>
+        )}
       </div>
 
       {error && <Alert type="error" message={error} />}

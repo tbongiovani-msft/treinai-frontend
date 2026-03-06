@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
+import { useAuth } from '@/contexts/AuthContext';
 import { apiClient, extractApiError } from '@/lib/api';
 import {
   Card, CardContent, Badge, Spinner, Alert, Input,
@@ -11,7 +12,8 @@ import type { Atividade } from '@/types';
 export function HistoricoPage() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const alunoId = searchParams.get('alunoId') ?? '';
+  const { alunoRecordId, isAluno } = useAuth();
+  const alunoId = searchParams.get('alunoId') || (isAluno ? alunoRecordId : null) || '';
 
   const [atividades, setAtividades] = useState<Atividade[]>([]);
   const [loading, setLoading] = useState(true);
