@@ -15,6 +15,7 @@ import { TreinoFormPage } from '@/pages/treinos/TreinoFormPage';
 import { ExerciciosPage } from '@/pages/exercicios/ExerciciosPage';
 import { RegistroAtividadePage } from '@/pages/atividades/RegistroAtividadePage';
 import { HistoricoPage } from '@/pages/atividades/HistoricoPage';
+import { CheckInPage } from '@/pages/atividades/CheckInPage';
 import { AvaliacoesListPage, AvaliacaoFormPage } from '@/pages/avaliacoes/AvaliacoesPage';
 import { NutricaoListPage, NutricaoDetailPage, NutricaoFormPage } from '@/pages/nutricao/NutricaoPage';
 import { RelatoriosPage } from '@/pages/relatorios/RelatoriosPage';
@@ -128,6 +129,14 @@ export default function App() {
               element={
                 <RoleGuard allowedRoles={['admin', 'professor', 'aluno']}>
                   <RegistroAtividadePage />
+                </RoleGuard>
+              }
+            />
+            <Route
+              path="/atividades/checkin"
+              element={
+                <RoleGuard allowedRoles={['admin', 'professor', 'aluno']}>
+                  <CheckInPage />
                 </RoleGuard>
               }
             />

@@ -95,6 +95,10 @@ export interface SerieExecutada {
 export interface ExercicioExecutado {
   exercicioId: string;
   nome: string;
+  concluido: boolean;
+  inicioExercicio?: string;
+  fimExercicio?: string;
+  duracaoSegundos?: number;
   series: SerieExecutada[];
   observacoes?: string;
 }
@@ -107,6 +111,9 @@ export interface Atividade {
   divisaoNome: string;
   dataExecucao: string;
   duracaoMinutos: number;
+  inicioEm?: string;
+  fimEm?: string;
+  status?: 'em_andamento' | 'concluido' | 'abandonado';
   observacoes?: string;
   exerciciosExecutados: ExercicioExecutado[];
   criadoEm: string;

@@ -4,3 +4,5 @@ export { Card, CardHeader, CardContent, CardFooter } from './Card';
 export { Badge } from './Badge';
 export { Spinner, PageLoader } from './Spinner';
 export { Alert } from './Alert';
+export { Timer } from './Timer';
+export { RestTimer } from './RestTimer';

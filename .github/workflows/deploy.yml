@@ -39,6 +39,14 @@ jobs:
           app_location: "/"
           output_location: "dist"
           app_build_command: "npm run build"
+        env:
+          VITE_FUNC_ALUNOS: ${{ vars.VITE_FUNC_ALUNOS }}
+          VITE_FUNC_TREINOS: ${{ vars.VITE_FUNC_TREINOS }}
+          VITE_FUNC_ATIVIDADES: ${{ vars.VITE_FUNC_ATIVIDADES }}
+          VITE_FUNC_AVALIACOES: ${{ vars.VITE_FUNC_AVALIACOES }}
+          VITE_FUNC_NUTRICAO: ${{ vars.VITE_FUNC_NUTRICAO }}
+          VITE_FUNC_RELATORIOS: ${{ vars.VITE_FUNC_RELATORIOS }}
+          VITE_FUNC_ADMIN: ${{ vars.VITE_FUNC_ADMIN }}
 
   close_pull_request:
     name: "Close PR Environment"
