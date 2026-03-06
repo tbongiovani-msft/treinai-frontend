@@ -150,6 +150,7 @@ export function RegistroAtividadePage() {
       const exerciciosExecutados: ExercicioExecutado[] = exercicios.map((ex) => ({
         exercicioId: ex.exercicioId,
         nome: ex.nome,
+        concluido: true,
         series: ex.series,
         observacoes: ex.observacoes || undefined,
       }));

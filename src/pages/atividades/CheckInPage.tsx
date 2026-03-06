@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { apiClient, extractApiError } from '@/lib/api';
 import {
-  Card, CardContent, CardHeader, CardFooter, Button, Input, Alert, Badge, Spinner, Timer, RestTimer,
+  Card, CardContent, CardHeader, CardFooter, Button, Input, Alert, Spinner, Timer, RestTimer,
 } from '@/components/ui';
 import { useTimer } from '@/hooks/useTimer';
 import {
@@ -87,7 +87,6 @@ export function CheckInPage() {
   const [exercicioAtualIdx, setExercicioAtualIdx] = useState<number | null>(null);
   const [observacoes, setObservacoes] = useState('');
   const [inicioEm, setInicioEm] = useState<string | null>(null);
-  const [fimEm, setFimEm] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -148,7 +147,7 @@ export function CheckInPage() {
         seriesPlanejadas: ex.series,
         repeticoesPlanejadas: ex.repeticoes ?? '12',
         cargaSugerida: ex.carga ?? '',
-        descansoSegundos: ex.descansoSegundos,
+        descansoSegundos: ex.descanso ? parseInt(ex.descanso) || undefined : undefined,
         linkVideo: ex.linkVideo,
         series: Array.from({ length: ex.series }, (_, i) => ({
           numero: i + 1,
@@ -231,7 +230,6 @@ export function CheckInPage() {
     if (!treinoSelecionado || !divisaoSelecionada) return;
 
     const fim = new Date().toISOString();
-    setFimEm(fim);
     workoutTimer.stop();
 
     const duracaoMinutos = Math.round(workoutTimer.elapsedSeconds / 60);
