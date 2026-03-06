@@ -63,6 +63,14 @@ export default function App() {
               }
             />
             <Route
+              path="/alunos/:id/editar"
+              element={
+                <RoleGuard allowedRoles={['admin', 'professor']}>
+                  <AlunoFormPage />
+                </RoleGuard>
+              }
+            />
+            <Route
               path="/alunos/:id"
               element={
                 <RoleGuard allowedRoles={['admin', 'professor']}>

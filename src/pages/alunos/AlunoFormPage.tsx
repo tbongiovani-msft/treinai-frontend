@@ -1,18 +1,21 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useEffect, useState } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
 import { apiClient, extractApiError } from '@/lib/api';
 import { Card, CardContent, CardHeader, CardFooter, Button, Input, Alert } from '@/components/ui';
-import { ArrowLeft, Save } from 'lucide-react';
+import { ArrowLeft, Save, Loader2 } from 'lucide-react';
 import type { Aluno } from '@/types';
 
-type AlunoForm = Omit<Aluno, 'id' | 'tenantId' | 'criadoEm' | 'atualizadoEm' | 'ativo' | 'professorId'>;
+type AlunoFormData = Omit<Aluno, 'id' | 'tenantId' | 'criadoEm' | 'atualizadoEm' | 'ativo' | 'professorId' | 'userId' | 'fotoUrl'>;
 
 export function AlunoFormPage() {
   const navigate = useNavigate();
+  const { id } = useParams<{ id: string }>();
+  const isEdit = Boolean(id);
+  const [loading, setLoading] = useState(isEdit);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const [form, setForm] = useState<AlunoForm>({
+  const [form, setForm] = useState<AlunoFormData>({
     nome: '',
     email: '',
     telefone: '',
@@ -20,9 +23,35 @@ export function AlunoFormPage() {
     peso: undefined,
     altura: undefined,
     objetivo: '',
+    observacoes: '',
   });
 
-  const handleChange = (field: keyof AlunoForm, value: string | number) => {
+  // Load existing aluno for edit mode
+  useEffect(() => {
+    if (!id) return;
+    (async () => {
+      try {
+        const res = await apiClient.get<Aluno>(`/api/alunos/${id}`);
+        const a = res.data;
+        setForm({
+          nome: a.nome,
+          email: a.email,
+          telefone: a.telefone ?? '',
+          dataNascimento: a.dataNascimento ? a.dataNascimento.split('T')[0] : '',
+          peso: a.peso,
+          altura: a.altura,
+          objetivo: a.objetivo ?? '',
+          observacoes: a.observacoes ?? '',
+        });
+      } catch (err) {
+        setError(extractApiError(err));
+      } finally {
+        setLoading(false);
+      }
+    })();
+  }, [id]);
+
+  const handleChange = (field: keyof AlunoFormData, value: string | number) => {
     setForm((prev) => ({ ...prev, [field]: value }));
   };
 
@@ -31,7 +60,11 @@ export function AlunoFormPage() {
     try {
       setSaving(true);
       setError(null);
-      await apiClient.post('/api/alunos', form);
+      if (isEdit) {
+        await apiClient.put(`/api/alunos/${id}`, form);
+      } else {
+        await apiClient.post('/api/alunos', form);
+      }
       navigate('/alunos');
     } catch (err) {
       setError(extractApiError(err));
@@ -40,13 +73,21 @@ export function AlunoFormPage() {
     }
   };
 
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-20">
+        <Loader2 className="h-8 w-8 animate-spin text-primary-600" />
+      </div>
+    );
+  }
+
   return (
     <div className="mx-auto max-w-2xl space-y-6">
       <div className="flex items-center gap-3">
         <button onClick={() => navigate(-1)} className="rounded-lg p-2 hover:bg-gray-100">
           <ArrowLeft className="h-5 w-5 text-gray-500" />
         </button>
-        <h1 className="text-2xl font-bold text-gray-900">Novo Aluno</h1>
+        <h1 className="text-2xl font-bold text-gray-900">{isEdit ? 'Editar Aluno' : 'Novo Aluno'}</h1>
       </div>
 
       {error && <Alert type="error" message={error} />}
@@ -118,6 +159,19 @@ export function AlunoFormPage() {
               onChange={(e) => handleChange('objetivo', e.target.value)}
               placeholder="Ex: Hipertrofia, Emagrecimento, Condicionamento..."
             />
+            <div>
+              <label htmlFor="observacoes" className="mb-1.5 block text-sm font-medium text-gray-700">
+                Observações
+              </label>
+              <textarea
+                id="observacoes"
+                value={form.observacoes ?? ''}
+                onChange={(e) => handleChange('observacoes', e.target.value)}
+                rows={3}
+                className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500"
+                placeholder="Lesões, restrições médicas, preferências..."
+              />
+            </div>
           </CardContent>
           <CardFooter className="flex justify-end gap-3">
             <Button variant="secondary" type="button" onClick={() => navigate(-1)}>

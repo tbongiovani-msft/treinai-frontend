@@ -5,7 +5,7 @@ import {
   Card, CardContent, CardHeader, CardFooter, Button, Input, Alert,
 } from '@/components/ui';
 import { ArrowLeft, Save, Plus, Trash2, GripVertical, ChevronDown, ChevronUp } from 'lucide-react';
-import type { Treino, DivisaoTreino, ExercicioTreino, Exercicio } from '@/types';
+import type { Treino, DivisaoTreino, ExercicioTreino, Exercicio, Aluno } from '@/types';
 
 const emptyExercicio = (): ExercicioTreino => ({
   exercicioId: '',
@@ -45,6 +45,7 @@ export function TreinoFormPage() {
   const [error, setError] = useState<string | null>(null);
   const [expandedDivisao, setExpandedDivisao] = useState<number>(0);
   const [catalogoExercicios, setCatalogoExercicios] = useState<Exercicio[]>([]);
+  const [alunos, setAlunos] = useState<Aluno[]>([]);
 
   const [form, setForm] = useState<TreinoForm>({
     nome: '',
@@ -55,9 +56,10 @@ export function TreinoFormPage() {
     divisoes: [emptyDivisao()],
   });
 
-  // Load exercicio catalog
+  // Load exercicio catalog and alunos list
   useEffect(() => {
     apiClient.get<Exercicio[]>('/api/exercicios').then((r) => setCatalogoExercicios(r.data)).catch(() => {});
+    apiClient.get<Aluno[]>('/api/alunos').then((r) => setAlunos(r.data)).catch(() => {});
   }, []);
 
   // Load existing treino for editing
@@ -224,14 +226,25 @@ export function TreinoFormPage() {
               onChange={(e) => updateField('descricao', e.target.value)}
               placeholder="Objetivo e orientações gerais..."
             />
-            <Input
-              id="alunoId"
-              label="ID do Aluno *"
-              value={form.alunoId}
-              onChange={(e) => updateField('alunoId', e.target.value)}
-              required
-              placeholder="ID do aluno"
-            />
+            <div>
+              <label htmlFor="alunoId" className="mb-1.5 block text-sm font-medium text-gray-700">
+                Aluno *
+              </label>
+              <select
+                id="alunoId"
+                value={form.alunoId}
+                onChange={(e) => updateField('alunoId', e.target.value)}
+                required
+                className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500"
+              >
+                <option value="">Selecione o aluno...</option>
+                {alunos.map((a) => (
+                  <option key={a.id} value={a.id}>
+                    {a.nome} — {a.email}
+                  </option>
+                ))}
+              </select>
+            </div>
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <Input
                 id="dataInicio"
