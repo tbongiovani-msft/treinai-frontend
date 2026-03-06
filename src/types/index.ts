@@ -33,8 +33,11 @@ export interface Aluno {
   peso?: number;
   altura?: number;
   objetivo?: string;
+  observacoes?: string;
   ativo: boolean;
   professorId?: string;
+  userId?: string;
+  fotoUrl?: string;
   criadoEm: string;
   atualizadoEm: string;
 }
