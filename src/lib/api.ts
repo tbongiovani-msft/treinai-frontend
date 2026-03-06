@@ -90,8 +90,9 @@ function createClient(): AxiosInstance {
     (response) => response,
     (error: AxiosError<ApiError>) => {
       if (error.response?.status === 401) {
-        // Redirect to SWA login
-        window.location.href = '/.auth/login/aadb2c';
+        // Redirect to login — mock mode goes to /login, B2C goes to /.auth/login
+        const authProvider = import.meta.env.VITE_AUTH_PROVIDER ?? 'mock';
+        window.location.href = authProvider === 'mock' ? '/login' : '/.auth/login/aadb2c';
       }
       return Promise.reject(error);
     }
