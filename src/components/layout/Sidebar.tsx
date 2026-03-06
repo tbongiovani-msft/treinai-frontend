@@ -10,10 +10,11 @@ import {
   Apple,
   BarChart3,
   Settings,
-  Target,
   Bell,
   Shield,
   X,
+  Goal,
+  Scale,
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -34,8 +35,9 @@ const navItems: NavItem[] = [
   { icon: Dumbbell, label: 'Treinos', href: '/treinos', roles: ['admin', 'professor', 'aluno'] },
   { icon: ClipboardList, label: 'Exercícios', href: '/exercicios', roles: ['admin', 'professor'] },
   { icon: Activity, label: 'Atividades', href: '/atividades', roles: ['admin', 'professor', 'aluno'] },
-  { icon: Target, label: 'Avaliações', href: '/avaliacoes', roles: ['admin', 'professor', 'aluno'] },
+  { icon: Scale, label: 'Avaliações', href: '/avaliacoes', roles: ['admin', 'professor', 'aluno'] },
   { icon: Apple, label: 'Nutrição', href: '/nutricao', roles: ['admin', 'professor', 'aluno'] },
+  { icon: Goal, label: 'Objetivos', href: '/objetivos', roles: ['admin', 'professor', 'aluno'] },
   { icon: BarChart3, label: 'Relatórios', href: '/relatorios', roles: ['admin', 'professor'] },
   { icon: Bell, label: 'Notificações', href: '/notificacoes', roles: ['admin', 'professor', 'aluno'] },
   { icon: Shield, label: 'Admin', href: '/admin', roles: ['admin'] },

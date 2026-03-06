@@ -11,17 +11,18 @@ import { AlunoFormPage } from '@/pages/alunos/AlunoFormPage';
 import { AlunoDetailPage } from '@/pages/alunos/AlunoDetailPage';
 import { TreinosListPage } from '@/pages/treinos/TreinosListPage';
 import { TreinoDetailPage } from '@/pages/treinos/TreinoDetailPage';
-import {
-  ExerciciosPage,
-  AtividadesPage,
-  AvaliacoesPage,
-  NutricaoPage,
-  RelatoriosPage,
-  NotificacoesPage,
-  AdminPage,
-  ConfiguracoesPage,
-  NotFoundPage,
-} from '@/pages/PlaceholderPages';
+import { TreinoFormPage } from '@/pages/treinos/TreinoFormPage';
+import { ExerciciosPage } from '@/pages/exercicios/ExerciciosPage';
+import { RegistroAtividadePage } from '@/pages/atividades/RegistroAtividadePage';
+import { HistoricoPage } from '@/pages/atividades/HistoricoPage';
+import { AvaliacoesListPage, AvaliacaoFormPage } from '@/pages/avaliacoes/AvaliacoesPage';
+import { NutricaoListPage, NutricaoDetailPage, NutricaoFormPage } from '@/pages/nutricao/NutricaoPage';
+import { RelatoriosPage } from '@/pages/relatorios/RelatoriosPage';
+import { ObjetivosPage } from '@/pages/objetivos/ObjetivosPage';
+import { NotificacoesPage } from '@/pages/notificacoes/NotificacoesPage';
+import { AdminPage } from '@/pages/admin/AdminPage';
+import { ConfiguracoesPage } from '@/pages/configuracoes/ConfiguracoesPage';
+import { NotFoundPage } from '@/pages/PlaceholderPages';
 
 export default function App() {
   return (
@@ -79,6 +80,22 @@ export default function App() {
               }
             />
             <Route
+              path="/treinos/novo"
+              element={
+                <RoleGuard allowedRoles={['admin', 'professor']}>
+                  <TreinoFormPage />
+                </RoleGuard>
+              }
+            />
+            <Route
+              path="/treinos/:id/editar"
+              element={
+                <RoleGuard allowedRoles={['admin', 'professor']}>
+                  <TreinoFormPage />
+                </RoleGuard>
+              }
+            />
+            <Route
               path="/treinos/:id"
               element={
                 <RoleGuard allowedRoles={['admin', 'professor', 'aluno']}>
@@ -102,7 +119,15 @@ export default function App() {
               path="/atividades"
               element={
                 <RoleGuard allowedRoles={['admin', 'professor', 'aluno']}>
-                  <AtividadesPage />
+                  <HistoricoPage />
+                </RoleGuard>
+              }
+            />
+            <Route
+              path="/atividades/registrar"
+              element={
+                <RoleGuard allowedRoles={['admin', 'professor', 'aluno']}>
+                  <RegistroAtividadePage />
                 </RoleGuard>
               }
             />
@@ -112,7 +137,23 @@ export default function App() {
               path="/avaliacoes"
               element={
                 <RoleGuard allowedRoles={['admin', 'professor', 'aluno']}>
-                  <AvaliacoesPage />
+                  <AvaliacoesListPage />
+                </RoleGuard>
+              }
+            />
+            <Route
+              path="/avaliacoes/nova"
+              element={
+                <RoleGuard allowedRoles={['admin', 'professor']}>
+                  <AvaliacaoFormPage />
+                </RoleGuard>
+              }
+            />
+            <Route
+              path="/avaliacoes/:id/editar"
+              element={
+                <RoleGuard allowedRoles={['admin', 'professor']}>
+                  <AvaliacaoFormPage />
                 </RoleGuard>
               }
             />
@@ -122,7 +163,23 @@ export default function App() {
               path="/nutricao"
               element={
                 <RoleGuard allowedRoles={['admin', 'professor', 'aluno']}>
-                  <NutricaoPage />
+                  <NutricaoListPage />
+                </RoleGuard>
+              }
+            />
+            <Route
+              path="/nutricao/novo"
+              element={
+                <RoleGuard allowedRoles={['admin', 'professor']}>
+                  <NutricaoFormPage />
+                </RoleGuard>
+              }
+            />
+            <Route
+              path="/nutricao/:id"
+              element={
+                <RoleGuard allowedRoles={['admin', 'professor', 'aluno']}>
+                  <NutricaoDetailPage />
                 </RoleGuard>
               }
             />
@@ -133,6 +190,16 @@ export default function App() {
               element={
                 <RoleGuard allowedRoles={['admin', 'professor']}>
                   <RelatoriosPage />
+                </RoleGuard>
+              }
+            />
+
+            {/* Objetivos — all roles */}
+            <Route
+              path="/objetivos"
+              element={
+                <RoleGuard allowedRoles={['admin', 'professor', 'aluno']}>
+                  <ObjetivosPage />
                 </RoleGuard>
               }
             />
