@@ -32,8 +32,8 @@ export function RelatoriosPage() {
     if (!alunoId) { setLoading(false); return; }
 
     Promise.all([
-      apiClient.get<EvolucaoAluno>(`/api/relatorios/evolucao?alunoId=${alunoId}`).catch(() => null),
-      apiClient.get<FrequenciaAluno>(`/api/relatorios/frequencia?alunoId=${alunoId}`).catch(() => null),
+      apiClient.get<EvolucaoAluno>(`/api/relatorios/aluno/${alunoId}/evolucao`).catch(() => null),
+      apiClient.get<FrequenciaAluno>(`/api/relatorios/aluno/${alunoId}/frequencia`).catch(() => null),
     ])
       .then(([ev, freq]) => {
         if (ev?.data?.avaliacoes) setEvolucao(ev.data.avaliacoes.sort((a, b) => new Date(a.dataAvaliacao).getTime() - new Date(b.dataAvaliacao).getTime()));

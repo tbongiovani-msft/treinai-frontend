@@ -25,10 +25,19 @@ function getMockUser(): Usuario | null {
   }
 }
 
+// Deterministic IDs matching seed data in Cosmos DB
+const MOCK_USER_IDS: Record<UserRole, string> = {
+  admin: 'u-admin-001',
+  professor: 'u-prof-001',
+  aluno: 'u-aluno-camila',
+};
+
+const SEED_TENANT_ID = 't-treinai-001';
+
 export function setMockUser(role: UserRole, nome: string, email: string): Usuario {
   const user: Usuario = {
-    id: `mock-${role}-${Date.now()}`,
-    tenantId: 'dev-tenant-001',
+    id: MOCK_USER_IDS[role] ?? `mock-${role}-${Date.now()}`,
+    tenantId: SEED_TENANT_ID,
     nome,
     email,
     b2CObjectId: `mock-b2c-${role}`,
@@ -112,8 +121,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       console.error('Auth error:', err);
       if (import.meta.env.DEV) {
         const devUser: Usuario = {
-          id: 'dev-user-001',
-          tenantId: 'dev-tenant-001',
+          id: 'u-prof-001',
+          tenantId: SEED_TENANT_ID,
           nome: 'Dev Professor',
           email: 'dev@treinai.com',
           b2CObjectId: 'dev-b2c-object',

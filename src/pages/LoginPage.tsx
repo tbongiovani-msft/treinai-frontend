@@ -5,9 +5,9 @@ import { Button } from '@/components/ui';
 import type { UserRole } from '@/types';
 
 const MOCK_PROFILES: { role: UserRole; nome: string; email: string; icon: typeof User; label: string; desc: string }[] = [
-  { role: 'admin',     nome: 'Admin TreinAI',    email: 'admin@treinai.com',     icon: ShieldCheck,   label: 'Admin',     desc: 'Gerenciar tenants, usuários e configurações' },
-  { role: 'professor', nome: 'Prof. Carlos',      email: 'carlos@treinai.com',    icon: GraduationCap, label: 'Professor', desc: 'Prescrever treinos e acompanhar alunos' },
-  { role: 'aluno',     nome: 'Ana Aluna',         email: 'ana@treinai.com',       icon: User,          label: 'Aluno',     desc: 'Visualizar treinos e registrar atividades' },
+  { role: 'admin',     nome: 'Admin TreinAI',        email: 'admin@treinai.com',    icon: ShieldCheck,   label: 'Admin',     desc: 'Gerenciar tenants, usuários e configurações' },
+  { role: 'professor', nome: 'Prof. Ricardo Silva',   email: 'ricardo@treinai.com',  icon: GraduationCap, label: 'Professor', desc: 'Prescrever treinos e acompanhar alunos' },
+  { role: 'aluno',     nome: 'Camila Jocope Ronchi',  email: 'camila@treinai.com',   icon: User,          label: 'Aluno',     desc: 'Visualizar treinos e registrar atividades' },
 ];
 
 export function LoginPage() {
