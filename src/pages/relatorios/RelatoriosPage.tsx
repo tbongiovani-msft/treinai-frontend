@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { apiClient, extractApiError } from '@/lib/api';
 import { Card, CardContent, CardHeader, Spinner, Alert } from '@/components/ui';
-import { TrendingUp } from 'lucide-react';
+import { TrendingUp, Target, Timer, Dumbbell } from 'lucide-react';
 import {
   ResponsiveContainer,
   LineChart,
@@ -19,12 +19,43 @@ import {
 } from 'recharts';
 import type { EvolucaoAluno, FrequenciaAluno, Avaliacao } from '@/types';
 
+// ── Analytics response types ──
+interface AderenciaData {
+  aderenciaGlobal: number;
+  totalPrescritos: number;
+  totalRealizados: number;
+  porTreino: Array<{ treinoId: string; treinoNome: string; percentual: number; realizados: number; totalPrescritos: number }>;
+  tendenciaSemanal: Array<{ semana: string; realizados: number }>;
+}
+
+interface EvolucaoCargaData {
+  porExercicio: Array<{
+    exercicioId: string;
+    nome: string;
+    pontos: Array<{ data: string; cargaMaxima: number; volumeTotal: number }>;
+  }>;
+}
+
+interface TempoMedioData {
+  duracaoMediaSessao: number;
+  porExercicio: Array<{
+    exercicioId: string;
+    nome: string;
+    tempoMedioSegundos: number;
+    totalExecucoes: number;
+  }>;
+  tendencia: Array<{ semana: string; duracaoMedia: number }>;
+}
+
 export function RelatoriosPage() {
   const [searchParams] = useSearchParams();
   const alunoId = searchParams.get('alunoId') ?? '';
 
   const [evolucao, setEvolucao] = useState<Avaliacao[]>([]);
   const [frequencia, setFrequencia] = useState<FrequenciaAluno['semanas']>([]);
+  const [aderencia, setAderencia] = useState<AderenciaData | null>(null);
+  const [evolucaoCarga, setEvolucaoCarga] = useState<EvolucaoCargaData | null>(null);
+  const [tempoMedio, setTempoMedio] = useState<TempoMedioData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -34,10 +65,16 @@ export function RelatoriosPage() {
     Promise.all([
       apiClient.get<EvolucaoAluno>(`/api/relatorios/aluno/${alunoId}/evolucao`).catch(() => null),
       apiClient.get<FrequenciaAluno>(`/api/relatorios/aluno/${alunoId}/frequencia`).catch(() => null),
+      apiClient.get<AderenciaData>(`/api/relatorios/aluno/${alunoId}/aderencia`).catch(() => null),
+      apiClient.get<EvolucaoCargaData>(`/api/relatorios/aluno/${alunoId}/evolucao-carga`).catch(() => null),
+      apiClient.get<TempoMedioData>(`/api/relatorios/aluno/${alunoId}/tempo-medio`).catch(() => null),
     ])
-      .then(([ev, freq]) => {
+      .then(([ev, freq, ader, carga, tempo]) => {
         if (ev?.data?.avaliacoes) setEvolucao(ev.data.avaliacoes.sort((a, b) => new Date(a.dataAvaliacao).getTime() - new Date(b.dataAvaliacao).getTime()));
         if (freq?.data?.semanas) setFrequencia(freq.data.semanas);
+        if (ader?.data) setAderencia(ader.data);
+        if (carga?.data) setEvolucaoCarga(carga.data);
+        if (tempo?.data) setTempoMedio(tempo.data);
       })
       .catch((err) => setError(extractApiError(err)))
       .finally(() => setLoading(false));
@@ -180,6 +217,175 @@ export function RelatoriosPage() {
                 </BarChart>
               </ResponsiveContainer>
             </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* ── Aderência ao Treino (E7-12) ── */}
+      {aderencia && (
+        <Card>
+          <CardHeader>
+            <div className="flex items-center gap-2">
+              <Target className="h-5 w-5 text-primary-600" />
+              <h2 className="text-lg font-semibold text-gray-900">Aderência ao Treino</h2>
+            </div>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {/* Global KPI */}
+            <div className="flex items-center gap-6">
+              <div className="text-center">
+                <p className="text-4xl font-bold text-primary-600">{aderencia.aderenciaGlobal}%</p>
+                <p className="text-xs text-gray-500 mt-1">Aderência global</p>
+              </div>
+              <div className="text-sm text-gray-600 space-y-1">
+                <p>Treinos prescritos: <span className="font-semibold">{aderencia.totalPrescritos}</span></p>
+                <p>Treinos realizados: <span className="font-semibold">{aderencia.totalRealizados}</span></p>
+              </div>
+            </div>
+
+            {/* Per-treino breakdown */}
+            {aderencia.porTreino.length > 0 && (
+              <div className="space-y-2">
+                <p className="text-sm font-medium text-gray-700">Por treino:</p>
+                {aderencia.porTreino.map((t) => (
+                  <div key={t.treinoId} className="flex items-center gap-3">
+                    <span className="text-sm text-gray-600 w-32 truncate">{t.treinoNome}</span>
+                    <div className="flex-1 h-3 bg-gray-100 rounded-full overflow-hidden">
+                      <div
+                        className="h-full rounded-full transition-all"
+                        style={{
+                          width: `${t.percentual}%`,
+                          backgroundColor: t.percentual >= 80 ? '#22c55e' : t.percentual >= 50 ? '#f59e0b' : '#ef4444',
+                        }}
+                      />
+                    </div>
+                    <span className="text-sm font-medium w-16 text-right">{t.percentual}%</span>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* Weekly trend */}
+            {aderencia.tendenciaSemanal.length > 1 && (
+              <div className="h-48">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={aderencia.tendenciaSemanal.map((s) => ({
+                    semana: new Date(s.semana).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' }),
+                    realizados: s.realizados,
+                  }))}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                    <XAxis dataKey="semana" tick={{ fontSize: 11 }} />
+                    <YAxis allowDecimals={false} tick={{ fontSize: 12 }} />
+                    <Tooltip />
+                    <Bar dataKey="realizados" name="Sessões" fill="#22c55e" radius={[4, 4, 0, 0]} />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
+
+      {/* ── Evolução de Carga (E7-13) ── */}
+      {evolucaoCarga && evolucaoCarga.porExercicio.length > 0 && (
+        <Card>
+          <CardHeader>
+            <div className="flex items-center gap-2">
+              <Dumbbell className="h-5 w-5 text-primary-600" />
+              <h2 className="text-lg font-semibold text-gray-900">Evolução de Carga</h2>
+            </div>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {evolucaoCarga.porExercicio.slice(0, 5).map((ex) => (
+              <div key={ex.exercicioId}>
+                <p className="text-sm font-medium text-gray-700 mb-2">{ex.nome}</p>
+                {ex.pontos.length > 1 ? (
+                  <div className="h-48">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <LineChart data={ex.pontos.map((p) => ({
+                        data: new Date(p.data).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' }),
+                        carga: p.cargaMaxima,
+                        volume: p.volumeTotal,
+                      }))}>
+                        <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                        <XAxis dataKey="data" tick={{ fontSize: 11 }} />
+                        <YAxis yAxisId="carga" tick={{ fontSize: 12 }} />
+                        <YAxis yAxisId="volume" orientation="right" tick={{ fontSize: 12 }} />
+                        <Tooltip />
+                        <Legend />
+                        <Line yAxisId="carga" type="monotone" dataKey="carga" name="Carga máx (kg)" stroke="#6366f1" strokeWidth={2} dot={{ r: 3 }} />
+                        <Line yAxisId="volume" type="monotone" dataKey="volume" name="Volume total" stroke="#f97316" strokeDasharray="5 5" strokeWidth={2} dot={{ r: 2 }} />
+                      </LineChart>
+                    </ResponsiveContainer>
+                  </div>
+                ) : (
+                  <p className="text-xs text-gray-400">Dados insuficientes para gráfico (precisa de 2+ execuções)</p>
+                )}
+              </div>
+            ))}
+          </CardContent>
+        </Card>
+      )}
+
+      {/* ── Tempo Médio por Exercício (E7-14) ── */}
+      {tempoMedio && (
+        <Card>
+          <CardHeader>
+            <div className="flex items-center gap-2">
+              <Timer className="h-5 w-5 text-primary-600" />
+              <h2 className="text-lg font-semibold text-gray-900">Tempo Médio de Treino</h2>
+            </div>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {/* Session average KPI */}
+            <div className="text-center p-3 bg-primary-50 rounded-lg">
+              <p className="text-3xl font-bold text-primary-600">{tempoMedio.duracaoMediaSessao} min</p>
+              <p className="text-xs text-gray-500 mt-1">Duração média por sessão</p>
+            </div>
+
+            {/* Per exercise table */}
+            {tempoMedio.porExercicio.length > 0 && (
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="border-b text-left text-gray-500">
+                      <th className="py-2">Exercício</th>
+                      <th className="py-2 text-right">Tempo médio</th>
+                      <th className="py-2 text-right">Execuções</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {tempoMedio.porExercicio.slice(0, 10).map((ex) => (
+                      <tr key={ex.exercicioId} className="border-b border-gray-100">
+                        <td className="py-2 font-medium text-gray-900">{ex.nome}</td>
+                        <td className="py-2 text-right text-gray-600">
+                          {Math.floor(ex.tempoMedioSegundos / 60)}:{String(Math.round(ex.tempoMedioSegundos % 60)).padStart(2, '0')} min
+                        </td>
+                        <td className="py-2 text-right text-gray-500">{ex.totalExecucoes}×</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+
+            {/* Session duration trend */}
+            {tempoMedio.tendencia.length > 1 && (
+              <div className="h-48">
+                <ResponsiveContainer width="100%" height="100%">
+                  <LineChart data={tempoMedio.tendencia.map((t) => ({
+                    semana: new Date(t.semana).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' }),
+                    minutos: t.duracaoMedia,
+                  }))}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                    <XAxis dataKey="semana" tick={{ fontSize: 11 }} />
+                    <YAxis tick={{ fontSize: 12 }} />
+                    <Tooltip />
+                    <Line type="monotone" dataKey="minutos" name="Duração média (min)" stroke="#8b5cf6" strokeWidth={2} dot={{ r: 3 }} />
+                  </LineChart>
+                </ResponsiveContainer>
+              </div>
+            )}
           </CardContent>
         </Card>
       )}

@@ -1,4 +1,25 @@
 {
+  "auth": {
+    "identityProviders": {
+      "customOpenIdConnectProviders": {
+        "aadb2c": {
+          "registration": {
+            "clientIdSettingName": "AADB2C_CLIENT_ID",
+            "clientCredential": {
+              "clientSecretSettingName": "AADB2C_CLIENT_SECRET"
+            },
+            "openIdConnectConfiguration": {
+              "wellKnownOpenIdConfiguration": "https://treinaidev.b2clogin.com/treinaidev.onmicrosoft.com/B2C_1_signupsignin/v2.0/.well-known/openid-configuration"
+            }
+          },
+          "login": {
+            "nameClaimType": "name",
+            "scopes": ["openid", "profile", "email"]
+          }
+        }
+      }
+    }
+  },
   "navigationFallback": {
     "rewrite": "/index.html",
     "exclude": ["/assets/*", "/api/*"]
