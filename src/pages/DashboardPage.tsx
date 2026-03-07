@@ -4,7 +4,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { apiClient, extractApiError } from '@/lib/api';
 import { Card, CardContent, CardHeader, Badge, PageLoader, Alert } from '@/components/ui';
 import {
-  Users, Dumbbell, Activity, Target, TrendingUp, Calendar, ClipboardList,
+  Users, Dumbbell, Activity, Target, TrendingUp, Calendar,
   Scale, ChevronRight, PlayCircle, AlertTriangle, Clock, UserCheck, UserX,
 } from 'lucide-react';
 import { formatDate } from '@/lib/utils';

@@ -3,7 +3,7 @@ import { useSearchParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { apiClient, extractApiError } from '@/lib/api';
 import {
-  Card, CardContent, CardHeader, Badge, Spinner, Alert, Input, Button,
+  Card, CardContent, CardHeader, Badge, Spinner, Alert, Input,
 } from '@/components/ui';
 import {
   Calendar as CalendarIcon, Clock, Dumbbell, ChevronRight, CheckCircle,

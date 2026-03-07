@@ -5,13 +5,13 @@ import {
   Card, CardContent, CardHeader, CardFooter, Button, Input, Alert, Badge, PageLoader,
 } from '@/components/ui';
 import {
-  User, Weight, Ruler, Target, Mail, Phone, Calendar, TrendingUp, TrendingDown, Minus, Save,
+  Weight, Ruler, Target, Mail, Phone, Calendar, TrendingUp, TrendingDown, Minus, Save,
 } from 'lucide-react';
 import { formatDate, formatDateTime, formatNumber, calcularIMC, classificarIMC, getInitials } from '@/lib/utils';
 import type { Aluno, HistoricoPeso } from '@/types';
 
 export function MeuPerfilPage() {
-  const { alunoRecordId, isAluno, isProfessor } = useAuth();
+  const { alunoRecordId, isAluno } = useAuth();
   const [aluno, setAluno] = useState<Aluno | null>(null);
   const [historico, setHistorico] = useState<HistoricoPeso[]>([]);
   const [loading, setLoading] = useState(true);

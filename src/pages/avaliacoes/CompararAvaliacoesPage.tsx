@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { apiClient, extractApiError } from '@/lib/api';
-import { Card, CardContent, CardHeader, Button, Alert, Spinner, Badge } from '@/components/ui';
+import { Card, CardContent, CardHeader, Alert, Spinner, Badge } from '@/components/ui';
 import { ArrowLeft, ArrowLeftRight, TrendingUp, TrendingDown, Minus } from 'lucide-react';
 import { formatDate, calcularIMC, classificarIMC } from '@/lib/utils';
 import type { Avaliacao, Circunferencias } from '@/types';

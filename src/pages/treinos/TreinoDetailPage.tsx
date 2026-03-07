@@ -1,17 +1,17 @@
 import { useEffect, useState } from 'react';
-import { useParams, Link, useNavigate } from 'react-router-dom';
+import { useParams, Link } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { apiClient, extractApiError } from '@/lib/api';
 import {
   Card, CardContent, CardHeader, Badge, Button, PageLoader, Alert, VideoLink,
 } from '@/components/ui';
-import { ArrowLeft, Edit, Dumbbell, PlayCircle, AlertTriangle, Clock, Copy } from 'lucide-react';
+import { ArrowLeft, Edit, PlayCircle, AlertTriangle, Clock } from 'lucide-react';
 import { formatDate } from '@/lib/utils';
 import type { Treino } from '@/types';
 
 export function TreinoDetailPage() {
   const { id } = useParams<{ id: string }>();
-  const navigate = useNavigate();
+
   const { isAluno, isProfessor, isAdmin } = useAuth();
   const [treino, setTreino] = useState<Treino | null>(null);
   const [loading, setLoading] = useState(true);
