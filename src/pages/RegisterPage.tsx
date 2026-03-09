@@ -3,11 +3,14 @@ import { Link, useNavigate } from 'react-router-dom';
 import { Dumbbell, UserPlus, ArrowLeft, CheckCircle } from 'lucide-react';
 import { Button, Input, Alert } from '@/components/ui';
 import { apiClient, extractApiError } from '@/lib/api';
+import { useAuth } from '@/contexts/AuthContext';
+import type { Usuario } from '@/types';
 
 const SEED_TENANT_ID = 't-treinai-001';
 
 export function RegisterPage() {
   const navigate = useNavigate();
+  const { loginWithUser } = useAuth();
   const [nome, setNome] = useState('');
   const [email, setEmail] = useState('');
   const [aceitouTermos, setAceitouTermos] = useState(false);
@@ -25,12 +28,15 @@ export function RegisterPage() {
     setError(null);
 
     try {
-      await apiClient.post('/api/auth/register', {
+      const res = await apiClient.post<Usuario>('/api/auth/register', {
         nome: nome.trim(),
         email: email.trim().toLowerCase(),
         tenantId: SEED_TENANT_ID,
       });
+      // Auto-login with the created user and redirect to home
+      await loginWithUser(res.data);
       setSuccess(true);
+      navigate('/');
     } catch (err) {
       setError(extractApiError(err));
     } finally {

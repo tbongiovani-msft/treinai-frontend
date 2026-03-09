@@ -68,6 +68,8 @@ interface AuthContextType {
   isMockAuth: boolean;
   login: () => void;
   loginMock: (role: UserRole, nome: string, email: string) => void;
+  loginWithUser: (usuario: Usuario) => Promise<void>;
+  loginByEmail: (email: string) => Promise<Usuario>;
   logout: () => void;
   refresh: () => Promise<void>;
 }
@@ -188,6 +190,33 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  /** Login with a full Usuario object (e.g. returned from register or login API) */
+  const loginWithUser = async (usuario: Usuario) => {
+    // Persist to localStorage exactly like setMockUser, but with real data
+    localStorage.setItem(MOCK_AUTH_KEY, JSON.stringify(usuario));
+    localStorage.setItem('treinai_tenant_id', usuario.tenantId);
+    localStorage.setItem('treinai_user_id', usuario.id);
+    localStorage.setItem('treinai_user_role', usuario.role);
+    setUser(usuario);
+    if (usuario.role === 'aluno') {
+      await resolveAlunoRecord();
+    } else {
+      setAlunoRecordId(null);
+      localStorage.removeItem('treinai_aluno_record_id');
+    }
+  };
+
+  /** Login by email — calls POST /api/auth/login to find user */
+  const loginByEmail = async (email: string): Promise<Usuario> => {
+    const res = await apiClient.post<Usuario>('/api/auth/login', {
+      email: email.trim().toLowerCase(),
+      tenantId: SEED_TENANT_ID,
+    });
+    const usuario = res.data;
+    await loginWithUser(usuario);
+    return usuario;
+  };
+
   const logout = () => {
     localStorage.removeItem('treinai_tenant_id');
     localStorage.removeItem('treinai_user_id');
@@ -227,6 +256,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         isMockAuth: isMockAuthEnabled(),
         login,
         loginMock,
+        loginWithUser,
+        loginByEmail,
         logout,
         refresh,
       }}

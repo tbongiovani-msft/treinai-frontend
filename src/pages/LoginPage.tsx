@@ -1,7 +1,9 @@
+import { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Navigate, useNavigate, Link } from 'react-router-dom';
-import { Dumbbell, ShieldCheck, GraduationCap, User, LogIn, UserPlus } from 'lucide-react';
-import { Button } from '@/components/ui';
+import { Dumbbell, ShieldCheck, GraduationCap, User, LogIn, UserPlus, Mail } from 'lucide-react';
+import { Button, Input, Alert } from '@/components/ui';
+import { extractApiError } from '@/lib/api';
 import type { UserRole } from '@/types';
 
 const MOCK_PROFILES: { role: UserRole; nome: string; email: string; icon: typeof User; label: string; desc: string }[] = [
@@ -11,8 +13,11 @@ const MOCK_PROFILES: { role: UserRole; nome: string; email: string; icon: typeof
 ];
 
 export function LoginPage() {
-  const { isAuthenticated, loading, login, loginMock, isMockAuth } = useAuth();
+  const { isAuthenticated, loading, login, loginMock, loginByEmail, isMockAuth } = useAuth();
   const navigate = useNavigate();
+  const [emailInput, setEmailInput] = useState('');
+  const [emailLoading, setEmailLoading] = useState(false);
+  const [emailError, setEmailError] = useState<string | null>(null);
 
   if (loading) return null;
   if (isAuthenticated) return <Navigate to="/" replace />;
@@ -20,6 +25,23 @@ export function LoginPage() {
   const handleMockLogin = (profile: typeof MOCK_PROFILES[number]) => {
     loginMock(profile.role, profile.nome, profile.email);
     navigate('/');
+  };
+
+  const handleEmailLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!emailInput.includes('@')) return;
+
+    setEmailLoading(true);
+    setEmailError(null);
+
+    try {
+      await loginByEmail(emailInput);
+      navigate('/');
+    } catch (err) {
+      setEmailError(extractApiError(err) || 'Usuário não encontrado. Verifique o e-mail ou crie uma conta.');
+    } finally {
+      setEmailLoading(false);
+    }
   };
 
   return (
@@ -65,6 +87,43 @@ export function LoginPage() {
                 );
               })}
             </div>
+
+            {/* Email login form for registered users */}
+            <div className="mt-6 border-t pt-5">
+              <p className="text-sm font-medium text-gray-700 mb-3">Já tem uma conta cadastrada?</p>
+              <form onSubmit={handleEmailLogin} className="space-y-3">
+                {emailError && <Alert type="error" message={emailError} />}
+                <div className="flex gap-2">
+                  <Input
+                    type="email"
+                    placeholder="Digite seu e-mail"
+                    value={emailInput}
+                    onChange={(e) => setEmailInput(e.target.value)}
+                    required
+                    autoComplete="email"
+                    className="flex-1"
+                  />
+                  <Button
+                    type="submit"
+                    disabled={!emailInput.includes('@') || emailLoading}
+                    className="gap-1.5 shrink-0"
+                  >
+                    {emailLoading ? (
+                      <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                      </svg>
+                    ) : (
+                      <>
+                        <Mail className="h-4 w-4" />
+                        Entrar
+                      </>
+                    )}
+                  </Button>
+                </div>
+              </form>
+            </div>
+
             <div className="mt-4 border-t pt-4">
               <Link
                 to="/cadastro"
