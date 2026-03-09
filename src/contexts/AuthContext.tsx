@@ -3,7 +3,7 @@ import { apiClient } from '@/lib/api';
 import type { Usuario, UserRole, AuthUser, Aluno } from '@/types';
 
 // ──────────────────────────────────────────────────────────────
-// Auth mode: 'mock' for local dev testing, 'aadb2c' for Azure AD B2C
+// Auth mode: 'mock' for local dev testing, 'custom' for email/password login
 // Set via VITE_AUTH_PROVIDER environment variable.
 // ──────────────────────────────────────────────────────────────
 const MOCK_AUTH_KEY = 'treinai_mock_user';
@@ -65,7 +65,7 @@ interface AuthContextType {
   login: () => void;
   loginMock: (role: UserRole, nome: string, email: string) => void;
   loginWithUser: (usuario: Usuario) => Promise<void>;
-  loginByEmail: (email: string) => Promise<Usuario>;
+  loginByEmail: (email: string, senha: string) => Promise<Usuario>;
   logout: () => void;
   refresh: () => Promise<void>;
 }
@@ -113,51 +113,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         return;
       }
 
-      // ── EasyAuth (B2C) path ──
-      const authRes = await fetch('/.auth/me');
-      const authData = await authRes.json();
-      const clientPrincipal = authData.clientPrincipal;
-
-      if (!clientPrincipal) {
-        setLoading(false);
-        return;
-      }
-
-      setAuthUser(clientPrincipal);
-
-      // Extract claims (handle both short and full URI claim types)
-      const b2cObjectId = clientPrincipal.userId;
-      const email = clientPrincipal.userDetails
-        || clientPrincipal.claims?.find((c: { typ: string; val: string }) =>
-            c.typ === 'emails' || c.typ === 'email' || c.typ.endsWith('/emailaddress'))?.val
-        || '';
-      const nome = clientPrincipal.claims?.find((c: { typ: string; val: string }) =>
-            c.typ === 'name' || c.typ.endsWith('/name'))?.val
-        || email.split('@')[0]
-        || '';
-
-      // Set temporary tenant for the login-b2c call
-      localStorage.setItem('treinai_tenant_id', SEED_TENANT_ID);
-      localStorage.setItem('treinai_user_id', b2cObjectId);
-
-      // Call login-b2c: finds existing user or auto-registers
-      const loginRes = await apiClient.post<Usuario>('/api/auth/login-b2c', {
-        b2CObjectId: b2cObjectId,
-        email,
-        nome,
-        tenantId: SEED_TENANT_ID,
-      });
-
-      const me = loginRes.data;
-
-      setUser(me);
-
-      localStorage.setItem('treinai_tenant_id', me.tenantId);
-      localStorage.setItem('treinai_user_id', me.id);
-      localStorage.setItem('treinai_user_role', me.role);
-
-      if (me.role === 'aluno') {
-        await resolveAlunoRecord();
+      // ── Custom auth path (email/password) ──
+      // User is stored in localStorage after login/register.
+      // Just restore from localStorage on page load.
+      const storedUser = getMockUser(); // same localStorage key
+      if (storedUser) {
+        setUser(storedUser);
+        localStorage.setItem('treinai_tenant_id', storedUser.tenantId);
+        localStorage.setItem('treinai_user_id', storedUser.id);
+        localStorage.setItem('treinai_user_role', storedUser.role);
+        if (storedUser.role === 'aluno') {
+          await resolveAlunoRecord();
+        }
       }
     } catch (err) {
       console.error('Auth error:', err);
@@ -189,12 +156,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [fetchAuth]);
 
   const login = () => {
-    if (isMockAuthEnabled()) {
-      // Redirect to our login page (mock mode handles it)
-      window.location.href = '/login';
-    } else {
-      window.location.href = '/.auth/login/aad';
-    }
+    window.location.href = '/login';
   };
 
   const loginMock = async (role: UserRole, nome: string, email: string) => {
@@ -224,10 +186,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  /** Login by email — calls POST /api/auth/login to find user */
-  const loginByEmail = async (email: string): Promise<Usuario> => {
+  /** Login by email + password — calls POST /api/auth/login */
+  const loginByEmail = async (email: string, senha: string): Promise<Usuario> => {
+    // Set temporary tenant for the API call
+    localStorage.setItem('treinai_tenant_id', SEED_TENANT_ID);
     const res = await apiClient.post<Usuario>('/api/auth/login', {
       email: email.trim().toLowerCase(),
+      senha,
       tenantId: SEED_TENANT_ID,
     });
     const usuario = res.data;
@@ -245,11 +210,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setAuthUser(null);
     setAlunoRecordId(null);
 
-    if (isMockAuthEnabled()) {
-      window.location.href = '/login';
-    } else {
-      window.location.href = '/.auth/logout?post_logout_redirect_uri=/login';
-    }
+    window.location.href = '/login';
   };
 
   const refresh = async () => {

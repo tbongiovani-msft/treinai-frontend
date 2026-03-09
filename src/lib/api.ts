@@ -90,9 +90,8 @@ function createClient(): AxiosInstance {
     (response) => response,
     (error: AxiosError<ApiError>) => {
       if (error.response?.status === 401) {
-        // Redirect to login — mock mode goes to /login, B2C goes to /.auth/login
-        const authProvider = import.meta.env.VITE_AUTH_PROVIDER ?? 'mock';
-        window.location.href = authProvider === 'mock' ? '/login' : '/.auth/login/aad';
+        // Redirect to login page
+        window.location.href = '/login';
       }
       return Promise.reject(error);
     }

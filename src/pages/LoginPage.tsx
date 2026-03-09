@@ -1,7 +1,9 @@
+import { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
-import { Navigate, useNavigate, Link } from 'react-router-dom';
-import { Dumbbell, ShieldCheck, GraduationCap, User, LogIn } from 'lucide-react';
-import { Button } from '@/components/ui';
+import { Navigate, Link } from 'react-router-dom';
+import { Dumbbell, ShieldCheck, GraduationCap, User, LogIn, Mail, Lock, Eye, EyeOff } from 'lucide-react';
+import { Button, Input, Alert } from '@/components/ui';
+import { extractApiError } from '@/lib/api';
 import type { UserRole } from '@/types';
 
 // Mock profiles — only used in local development when VITE_AUTH_PROVIDER=mock
@@ -12,15 +14,34 @@ const MOCK_PROFILES: { role: UserRole; nome: string; email: string; icon: typeof
 ];
 
 export function LoginPage() {
-  const { isAuthenticated, loading, login, loginMock, isMockAuth } = useAuth();
-  const navigate = useNavigate();
+  const { isAuthenticated, loading, loginMock, loginByEmail, isMockAuth } = useAuth();
+  const [email, setEmail] = useState('');
+  const [senha, setSenha] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [loginLoading, setLoginLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   if (loading) return null;
   if (isAuthenticated) return <Navigate to="/" replace />;
 
   const handleMockLogin = (profile: typeof MOCK_PROFILES[number]) => {
     loginMock(profile.role, profile.nome, profile.email);
-    navigate('/');
+  };
+
+  const handleEmailLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!email.trim() || !senha.trim()) return;
+
+    setLoginLoading(true);
+    setError(null);
+
+    try {
+      await loginByEmail(email, senha);
+    } catch (err) {
+      setError(extractApiError(err));
+    } finally {
+      setLoginLoading(false);
+    }
   };
 
   return (
@@ -69,19 +90,87 @@ export function LoginPage() {
           </>
         ) : (
           <>
-            {/* B2C auth — production */}
-            <div className="mt-8 space-y-4">
-              <Button onClick={login} size="lg" className="w-full gap-2">
-                <LogIn className="h-5 w-5" />
-                Entrar com sua conta
+            {/* Email/password login */}
+            <form onSubmit={handleEmailLogin} className="mt-8 space-y-4 text-left">
+              {error && <Alert type="error" message={error} />}
+
+              <div>
+                <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
+                  E-mail
+                </label>
+                <div className="relative">
+                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                  <Input
+                    id="email"
+                    type="email"
+                    placeholder="seu@email.com"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    required
+                    autoComplete="email"
+                    autoFocus
+                    className="pl-10"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label htmlFor="senha" className="block text-sm font-medium text-gray-700 mb-1">
+                  Senha
+                </label>
+                <div className="relative">
+                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                  <Input
+                    id="senha"
+                    type={showPassword ? 'text' : 'password'}
+                    placeholder="Sua senha"
+                    value={senha}
+                    onChange={(e) => setSenha(e.target.value)}
+                    required
+                    autoComplete="current-password"
+                    className="pl-10 pr-10"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                  >
+                    {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  </button>
+                </div>
+              </div>
+
+              <Button
+                type="submit"
+                size="lg"
+                className="w-full gap-2"
+                disabled={!email.trim() || !senha.trim() || loginLoading}
+              >
+                {loginLoading ? (
+                  <span className="flex items-center gap-2">
+                    <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                    </svg>
+                    Entrando...
+                  </span>
+                ) : (
+                  <>
+                    <LogIn className="h-5 w-5" />
+                    Entrar
+                  </>
+                )}
               </Button>
+            </form>
+
+            <div className="mt-6 text-center">
+              <p className="text-sm text-gray-500">
+                Não tem conta?{' '}
+                <Link to="/cadastro" className="font-medium text-primary-600 hover:text-primary-700 underline">
+                  Criar conta
+                </Link>
+              </p>
             </div>
-            <p className="mt-4 text-xs text-gray-400">
-              Autenticação segura via Azure AD B2C
-            </p>
-            <p className="mt-2 text-sm text-gray-500">
-              Não tem conta? Clique em <strong>"Entrar"</strong> e depois em <strong>"Sign up now"</strong> na tela do B2C.
-            </p>
           </>
         )}
 
