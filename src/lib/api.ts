@@ -92,7 +92,7 @@ function createClient(): AxiosInstance {
       if (error.response?.status === 401) {
         // Redirect to login — mock mode goes to /login, B2C goes to /.auth/login
         const authProvider = import.meta.env.VITE_AUTH_PROVIDER ?? 'mock';
-        window.location.href = authProvider === 'mock' ? '/login' : '/.auth/login/aadb2c';
+        window.location.href = authProvider === 'mock' ? '/login' : '/.auth/login/aad';
       }
       return Promise.reject(error);
     }

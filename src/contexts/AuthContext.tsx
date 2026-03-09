@@ -3,16 +3,12 @@ import { apiClient } from '@/lib/api';
 import type { Usuario, UserRole, AuthUser, Aluno } from '@/types';
 
 // ──────────────────────────────────────────────────────────────
-// Mock auth: until Azure AD B2C is configured (E15-07), allow
-// a simulated login so the app is fully testable. When B2C is
-// ready, remove the mock block and everything falls back to
-// the EasyAuth flow already coded below.
+// Auth mode: 'mock' for local dev testing, 'aadb2c' for Azure AD B2C
+// Set via VITE_AUTH_PROVIDER environment variable.
 // ──────────────────────────────────────────────────────────────
 const MOCK_AUTH_KEY = 'treinai_mock_user';
 
 function isMockAuthEnabled(): boolean {
-  // Mock auth is used when B2C is not configured yet.
-  // To disable mock auth after B2C setup, set VITE_AUTH_PROVIDER=aadb2c
   return (import.meta.env.VITE_AUTH_PROVIDER ?? 'mock') === 'mock';
 }
 
@@ -25,7 +21,7 @@ function getMockUser(): Usuario | null {
   }
 }
 
-// Deterministic IDs matching seed data in Cosmos DB
+// Deterministic IDs matching seed data in Cosmos DB (mock mode only)
 const MOCK_USER_IDS: Record<UserRole, string> = {
   admin: 'u-admin-001',
   professor: 'u-prof-001',
@@ -129,8 +125,30 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       setAuthUser(clientPrincipal);
 
-      const meRes = await apiClient.get<Usuario>('/api/usuarios/me');
-      const me = meRes.data;
+      // Extract claims (handle both short and full URI claim types)
+      const b2cObjectId = clientPrincipal.userId;
+      const email = clientPrincipal.userDetails
+        || clientPrincipal.claims?.find((c: { typ: string; val: string }) =>
+            c.typ === 'emails' || c.typ === 'email' || c.typ.endsWith('/emailaddress'))?.val
+        || '';
+      const nome = clientPrincipal.claims?.find((c: { typ: string; val: string }) =>
+            c.typ === 'name' || c.typ.endsWith('/name'))?.val
+        || email.split('@')[0]
+        || '';
+
+      // Set temporary tenant for the login-b2c call
+      localStorage.setItem('treinai_tenant_id', SEED_TENANT_ID);
+      localStorage.setItem('treinai_user_id', b2cObjectId);
+
+      // Call login-b2c: finds existing user or auto-registers
+      const loginRes = await apiClient.post<Usuario>('/api/auth/login-b2c', {
+        b2CObjectId: b2cObjectId,
+        email,
+        nome,
+        tenantId: SEED_TENANT_ID,
+      });
+
+      const me = loginRes.data;
 
       setUser(me);
 
@@ -175,7 +193,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       // Redirect to our login page (mock mode handles it)
       window.location.href = '/login';
     } else {
-      window.location.href = '/.auth/login/aadb2c';
+      window.location.href = '/.auth/login/aad';
     }
   };
 
@@ -230,7 +248,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (isMockAuthEnabled()) {
       window.location.href = '/login';
     } else {
-      window.location.href = '/.auth/logout';
+      window.location.href = '/.auth/logout?post_logout_redirect_uri=/login';
     }
   };
 
