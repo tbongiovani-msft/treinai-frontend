@@ -27,6 +27,7 @@ import { MeuPerfilPage } from '@/pages/perfil/MeuPerfilPage';
 import { CompararAvaliacoesPage } from '@/pages/avaliacoes/CompararAvaliacoesPage';
 import { TermosPage } from '@/pages/legal/TermosPage';
 import { PrivacidadePage } from '@/pages/legal/PrivacidadePage';
+import { RegisterPage } from '@/pages/RegisterPage';
 import { NotFoundPage } from '@/pages/PlaceholderPages';
 
 export default function App() {
@@ -36,6 +37,7 @@ export default function App() {
         <Routes>
           {/* Public */}
           <Route path="/login" element={<LoginPage />} />
+          <Route path="/cadastro" element={<RegisterPage />} />
 
           {/* Authenticated layout */}
           <Route element={<AppLayout />}>

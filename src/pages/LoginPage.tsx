@@ -1,6 +1,6 @@
 import { useAuth } from '@/contexts/AuthContext';
-import { Navigate, useNavigate } from 'react-router-dom';
-import { Dumbbell, ShieldCheck, GraduationCap, User } from 'lucide-react';
+import { Navigate, useNavigate, Link } from 'react-router-dom';
+import { Dumbbell, ShieldCheck, GraduationCap, User, LogIn, UserPlus } from 'lucide-react';
 import { Button } from '@/components/ui';
 import type { UserRole } from '@/types';
 
@@ -23,8 +23,9 @@ export function LoginPage() {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-primary-50 to-primary-100">
+    <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-primary-50 to-primary-100 p-4">
       <div className="w-full max-w-md rounded-2xl bg-white p-8 shadow-xl text-center">
+        {/* Logo */}
         <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-primary-600">
           <Dumbbell className="h-8 w-8 text-white" />
         </div>
@@ -37,6 +38,7 @@ export function LoginPage() {
 
         {isMockAuth ? (
           <>
+            {/* Mock auth — development/testing */}
             <div className="mt-6 rounded-lg bg-amber-50 border border-amber-200 p-3 text-left">
               <p className="text-sm text-amber-800 font-medium">Modo de teste</p>
               <p className="text-xs text-amber-600 mt-1">
@@ -63,17 +65,43 @@ export function LoginPage() {
                 );
               })}
             </div>
+            <div className="mt-4 border-t pt-4">
+              <Link
+                to="/cadastro"
+                className="inline-flex items-center gap-2 text-sm font-medium text-primary-600 hover:text-primary-700 transition"
+              >
+                <UserPlus className="h-4 w-4" />
+                Criar nova conta (testar cadastro)
+              </Link>
+            </div>
           </>
         ) : (
           <>
-            <Button onClick={login} size="lg" className="mt-8 w-full">
-              Entrar com sua conta
-            </Button>
+            {/* B2C auth — production */}
+            <div className="mt-8 space-y-3">
+              <Button onClick={login} size="lg" className="w-full gap-2">
+                <LogIn className="h-5 w-5" />
+                Entrar com sua conta
+              </Button>
+              <Link to="/cadastro">
+                <Button variant="outline" size="lg" className="w-full gap-2">
+                  <UserPlus className="h-5 w-5" />
+                  Criar nova conta
+                </Button>
+              </Link>
+            </div>
             <p className="mt-6 text-xs text-gray-400">
               Autenticação segura via Azure AD B2C
             </p>
           </>
         )}
+
+        {/* Footer links */}
+        <div className="mt-6 flex justify-center gap-4 text-xs text-gray-400">
+          <Link to="/termos" className="hover:text-gray-600 transition">Termos de Uso</Link>
+          <span>·</span>
+          <Link to="/privacidade" className="hover:text-gray-600 transition">Privacidade</Link>
+        </div>
       </div>
     </div>
   );
